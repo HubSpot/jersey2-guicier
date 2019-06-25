@@ -19,16 +19,15 @@ package com.hubspot.jersey2.guicier;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import org.glassfish.jersey.inject.hk2.HK2BinderConfigurationFactory;
 import org.glassfish.jersey.inject.spi.BinderConfigurationFactory;
 import org.glassfish.jersey.internal.ServiceFinder;
 import org.junit.Test;
 
-public class HK2BinderConfigurationFactoryTest {
+public class GuiceBinderConfigurationFactoryTest {
   @Test
   public void testServiceFound() {
     ServiceFinder<BinderConfigurationFactory> factoryFinder = ServiceFinder.find(BinderConfigurationFactory.class);
     assertTrue(factoryFinder.iterator().hasNext());
-    assertSame(factoryFinder.iterator().next().getClass(), HK2BinderConfigurationFactory.class);
+    assertSame(factoryFinder.iterator().next().getClass(), GuiceBinderConfigurationFactory.class);
   }
 }
