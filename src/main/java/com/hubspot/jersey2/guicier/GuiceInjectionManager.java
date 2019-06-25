@@ -2,7 +2,9 @@ package com.hubspot.jersey2.guicier;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.glassfish.jersey.internal.inject.Binder;
@@ -10,6 +12,7 @@ import org.glassfish.jersey.internal.inject.Binding;
 import org.glassfish.jersey.internal.inject.ForeignDescriptor;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.internal.inject.ServiceHolder;
+import org.glassfish.jersey.internal.inject.ServiceHolderImpl;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -21,17 +24,17 @@ public class GuiceInjectionManager implements InjectionManager {
 
   @Override
   public void completeRegistration() {
-
+    // TODO
   }
 
   @Override
   public void shutdown() {
-
+    // TODO
   }
 
   @Override
   public void register(Binding binding) {
-
+    // TODO
   }
 
   @Override
@@ -46,22 +49,43 @@ public class GuiceInjectionManager implements InjectionManager {
 
   @Override
   public void register(Object provider) throws IllegalArgumentException {
-
+    if (isRegistrable(provider.getClass())) {
+      com.google.inject.Binder binder = (com.google.inject.Binder) provider;
+      // TODO
+    } else {
+      throw new IllegalArgumentException();
+    }
   }
 
   @Override
   public boolean isRegistrable(Class<?> clazz) {
-    return false;
+    return com.google.inject.Binder.class.isAssignableFrom(clazz);
   }
 
   @Override
   public <T> T createAndInitialize(Class<T> createMe) {
-    return null;
+    // TODO is this ok?
+    return getInstance(createMe);
   }
 
   @Override
   public <T> List<ServiceHolder<T>> getAllServiceHolders(Class<T> contractOrImpl, Annotation... qualifiers) {
-    return null;
+    switch (qualifiers.length) {
+      case 0:
+        TypeLiteral<T> typeLiteral = TypeLiteral.get(contractOrImpl);
+        return injector
+            .findBindingsByType(typeLiteral)
+            .stream()
+            .map(this::asServiceHolder)
+            .collect(Collectors.toList());
+      case 1:
+        Key<T> key = Key.get(contractOrImpl, qualifiers[0]);
+        ServiceHolder<T> serviceHolder = asServiceHolder(injector.getBinding(key));
+        return Collections.singletonList(serviceHolder);
+      default:
+        // TODO
+        throw new IllegalArgumentException();
+    }
   }
 
   @Override
@@ -96,11 +120,13 @@ public class GuiceInjectionManager implements InjectionManager {
 
   @Override
   public Object getInstance(ForeignDescriptor foreignDescriptor) {
+    // TODO
     return null;
   }
 
   @Override
   public ForeignDescriptor createForeignDescriptor(Binding binding) {
+    // TODO
     return null;
   }
 
@@ -127,6 +153,14 @@ public class GuiceInjectionManager implements InjectionManager {
 
   @Override
   public void preDestroy(Object preDestroyMe) {
+    // TODO should we support this?
+    throw new UnsupportedOperationException();
+  }
 
+  private <T> ServiceHolder<T> asServiceHolder(com.google.inject.Binding<T> binding) {
+    T instance = binding.getProvider().get();
+    // TODO what are contract types?
+    Set<Type> contractTypes = Collections.singleton(binding.getKey().getTypeLiteral().getType());
+    return new ServiceHolderImpl<>(instance, contractTypes);
   }
 }
