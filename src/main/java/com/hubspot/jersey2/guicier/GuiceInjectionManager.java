@@ -89,11 +89,11 @@ public class GuiceInjectionManager implements InjectionManager {
 
       builder.add(
         binder -> {
+          scope(binder.bind(implementation), bindingScope);
+
           for (Key<Object> bindingKey : bindingKeys) {
-            if (bindingKey.getTypeLiteral().getType() == implementation) {
-              scope(binder.bind(bindingKey), bindingScope);
-            } else {
-              scope(binder.bind(bindingKey).to(implementation), bindingScope);
+            if (bindingKey.getTypeLiteral().getType() != implementation) {
+              binder.bind(bindingKey).to(implementation);
             }
 
             Provider<Object> provider = binder.getProvider(bindingKey);
@@ -122,18 +122,15 @@ public class GuiceInjectionManager implements InjectionManager {
 
       builder.add(
         binder -> {
-          for (Key<Object> bindingKey : bindingKeys) {
-            @SuppressWarnings("unchecked")
-            Class<? extends Supplier<Object>> supplierClass = (Class<? extends Supplier<Object>>) supplierClassBinding.getSupplierClass();
-            scope(
-              binder.bind(supplierKey(bindingKey)).to(supplierClass),
-              supplierClassBinding.getSupplierScope()
-            );
+          @SuppressWarnings("unchecked")
+          Class<Supplier<Object>> supplierClass = (Class<Supplier<Object>>) supplierClassBinding.getSupplierClass();
+          scope(binder.bind(supplierClass), supplierClassBinding.getSupplierScope());
+          Provider<Supplier<Object>> supplierProvider = binder.getProvider(supplierClass);
+          Provider<Object> provider = () -> supplierProvider.get().get();
 
-            Provider<Supplier<Object>> supplierProvider = binder.getProvider(
-              supplierKey(bindingKey)
-            );
-            Provider<Object> provider = () -> supplierProvider.get().get();
+          for (Key<Object> bindingKey : bindingKeys) {
+            binder.bind(supplierKey(bindingKey)).toProvider(supplierProvider);
+
             scope(binder.bind(bindingKey).toProvider(provider), bindingScope);
           }
         }
