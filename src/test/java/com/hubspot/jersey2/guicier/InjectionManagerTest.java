@@ -20,7 +20,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -70,7 +69,7 @@ public class InjectionManagerTest {
   @Test
   public void testIsRegistrable() {
     InjectionManager injectionManager = Injections.createInjectionManager();
-    assertTrue(injectionManager.isRegistrable(Binder.class));
+    assertTrue(injectionManager.isRegistrable(Module.class));
     assertFalse(
       injectionManager.isRegistrable(
         org.glassfish.jersey.internal.inject.AbstractBinder.class

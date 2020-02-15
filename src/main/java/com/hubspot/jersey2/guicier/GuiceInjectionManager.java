@@ -1,28 +1,55 @@
 package com.hubspot.jersey2.guicier;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Key;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.Stage;
 import com.google.inject.TypeLiteral;
+import com.google.inject.binder.ScopedBindingBuilder;
+import com.google.inject.name.Names;
+import com.google.inject.util.Types;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.glassfish.jersey.internal.inject.Binder;
 import org.glassfish.jersey.internal.inject.Binding;
+import org.glassfish.jersey.internal.inject.ClassBinding;
 import org.glassfish.jersey.internal.inject.ForeignDescriptor;
 import org.glassfish.jersey.internal.inject.InjectionManager;
+import org.glassfish.jersey.internal.inject.InstanceBinding;
 import org.glassfish.jersey.internal.inject.ServiceHolder;
 import org.glassfish.jersey.internal.inject.ServiceHolderImpl;
+import org.glassfish.jersey.internal.inject.SupplierClassBinding;
+import org.glassfish.jersey.internal.inject.SupplierInstanceBinding;
 
 public class GuiceInjectionManager implements InjectionManager {
-  private Injector injector = Guice.createInjector(); // TODO
+  private final Stage stage = Stage.PRODUCTION; // TODO customizable?
+  private final ImmutableList.Builder<Module> builder = ImmutableList.builder();
+  private volatile Injector injector;
 
   @Override
   public void completeRegistration() {
-    // TODO
+    if (injector != null) {
+      throw new IllegalStateException(/* TODO */);
+    }
+
+    synchronized (this) {
+      if (injector != null) {
+        throw new IllegalStateException(/* TODO */);
+      }
+
+      injector = Guice.createInjector(stage, builder.build());
+    }
   }
 
   @Override
@@ -32,7 +59,78 @@ public class GuiceInjectionManager implements InjectionManager {
 
   @Override
   public void register(Binding binding) {
-    // TODO
+    @SuppressWarnings("unchecked")
+    Class<? extends Annotation> bindingScope = (Class<? extends Annotation>) binding.getScope();
+    List<Key<Object>> bindingKeys = bindingKeys(binding);
+
+    if (binding instanceof InstanceBinding) {
+      InstanceBinding<?> instanceBinding = (InstanceBinding<?>) binding;
+      Object instance = instanceBinding.getService();
+
+      builder.add(
+        binder -> {
+          for (Key<Object> bindingKey : bindingKeys) {
+            binder.bind(bindingKey).toInstance(instance);
+          }
+        }
+      );
+    } else if (binding instanceof ClassBinding) {
+      ClassBinding<?> classBinding = (ClassBinding<?>) binding;
+      Class<?> implementation = classBinding.getService();
+
+      builder.add(
+        binder -> {
+          for (Key<Object> bindingKey : bindingKeys) {
+            if (bindingKey.getTypeLiteral().getType() == implementation) {
+              scope(binder.bind(bindingKey), bindingScope);
+            } else {
+              scope(binder.bind(bindingKey).to(implementation), bindingScope);
+            }
+          }
+        }
+      );
+    } else if (binding instanceof SupplierInstanceBinding) {
+      SupplierInstanceBinding<?> supplierBinding = (SupplierInstanceBinding<?>) binding;
+      Supplier<?> supplier = supplierBinding.getSupplier();
+
+      builder.add(
+        binder -> {
+          for (Key<Object> bindingKey : bindingKeys) {
+            scope(binder.bind(bindingKey).toProvider(supplier::get), bindingScope);
+          }
+        }
+      );
+    } else if (binding instanceof SupplierClassBinding) {
+      SupplierClassBinding<?> supplierClassBinding = (SupplierClassBinding<?>) binding;
+      Class<? extends Supplier<?>> supplierClass = supplierClassBinding.getSupplierClass();
+      Class<? extends Annotation> supplierScope = supplierClassBinding.getSupplierScope();
+
+      builder.add(
+        binder -> {
+          for (Key<Object> bindingKey : bindingKeys) {
+            Provider<Supplier<Object>> supplierProvider = scopedProvider(
+              supplierClassBinding,
+              bindingKey,
+              binder
+            );
+
+            Provider<Object> provider = () -> supplierProvider.get().get();
+            scope(binder.bind(bindingKey).toProvider(provider), bindingScope);
+
+            @SuppressWarnings("unchecked")
+            Key<Supplier<Object>> supplierKey = (Key<Supplier<Object>>) bindingKey.ofType(
+              Types.newParameterizedType(
+                Supplier.class,
+                bindingKey.getTypeLiteral().getType()
+              )
+            );
+            binder.bind(supplierKey).toProvider(supplierProvider);
+          }
+        }
+      );
+    } else {
+      throw new IllegalArgumentException(/* TODO */);
+    }
   }
 
   @Override
@@ -49,7 +147,7 @@ public class GuiceInjectionManager implements InjectionManager {
   public void register(Object provider) throws IllegalArgumentException {
     if (isRegistrable(provider.getClass())) {
       com.google.inject.Module module = (com.google.inject.Module) provider;
-      // TODO
+      builder.add(module);
     } else {
       throw new IllegalArgumentException();
     }
@@ -165,5 +263,81 @@ public class GuiceInjectionManager implements InjectionManager {
       binding.getKey().getTypeLiteral().getType()
     );
     return new ServiceHolderImpl<>(instance, contractTypes);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static List<Key<Object>> bindingKeys(Binding<?, ?> binding) {
+    final Function<Type, Key<?>> keyCreator;
+
+    ImmutableSet.Builder<Annotation> builder = ImmutableSet.builder();
+    builder.addAll(binding.getQualifiers());
+    if (binding.getName() != null) {
+      builder.add(Names.named(binding.getName()));
+    }
+
+    Set<Annotation> qualifiers = builder.build();
+    if (qualifiers.isEmpty()) {
+      keyCreator = Key::get;
+    } else if (qualifiers.size() == 1) {
+      Annotation qualifier = qualifiers.iterator().next();
+      keyCreator = type -> Key.get(type, qualifier);
+    } else {
+      throw new IllegalArgumentException(/* TODO */);
+    }
+
+    return binding
+      .getContracts()
+      .stream()
+      .map(keyCreator)
+      .map(key -> (Key<Object>) key)
+      .collect(ImmutableList.toImmutableList());
+  }
+
+  private static Provider<Supplier<Object>> scopedProvider(
+    SupplierClassBinding<?> supplierClassBinding,
+    Key<Object> bindingKey,
+    com.google.inject.Binder binder
+  ) {
+    @SuppressWarnings("unchecked")
+    Provider<Supplier<Object>> supplierProvider = (Provider<Supplier<Object>>) binder.getProvider(
+      supplierClassBinding.getSupplierClass()
+    );
+
+    // TODO handle more than Singleton?
+    if (supplierClassBinding.getSupplierScope() == null) {
+      return supplierProvider;
+    } else {
+      @SuppressWarnings("unchecked")
+      Key<Supplier<Object>> supplierKey = (Key<Supplier<Object>>) Key.get(
+        Types.newParameterizedType(Supplier.class, bindingKey.getTypeLiteral().getType())
+      );
+
+      return new Provider<Supplier<Object>>() {
+        Provider<Supplier<Object>> supplierProvider = null;
+
+        @Inject
+        public void setInjector(Injector injector) {
+          supplierProvider =
+            injector
+              .getScopeBindings()
+              .get(supplierClassBinding.getSupplierScope())
+              .scope(supplierKey, supplierProvider);
+        }
+
+        @Override
+        public Supplier<Object> get() {
+          return supplierProvider.get();
+        }
+      };
+    }
+  }
+
+  private static void scope(
+    ScopedBindingBuilder bindingBuilder,
+    Class<? extends Annotation> bindingScope
+  ) {
+    if (bindingScope != null) {
+      bindingBuilder.in(bindingScope);
+    }
   }
 }
