@@ -20,10 +20,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.glassfish.hk2.api.ServiceLocator;
-import org.glassfish.hk2.utilities.Binder;
-import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
 import org.glassfish.jersey.internal.inject.Bindings;
 import org.glassfish.jersey.internal.inject.ClassBinding;
 import org.glassfish.jersey.internal.inject.InjectionManager;
@@ -37,16 +37,11 @@ public class InjectionManagerTest {
 
   @Test
   public void testServiceLocatorParent() {
-    AbstractBinder binder = new AbstractBinder() {
+    Module module = binder -> binder.bind(EnglishGreeting.class);
 
-      @Override
-      protected void configure() {
-        bindAsContract(EnglishGreeting.class);
-      }
-    };
-    ServiceLocator parentLocator = ServiceLocatorUtilities.bind(binder);
+    Injector parentInjector = Guice.createInjector(module);
 
-    InjectionManager injectionManager = Injections.createInjectionManager(parentLocator);
+    InjectionManager injectionManager = Injections.createInjectionManager(parentInjector);
     injectionManager.completeRegistration();
     assertNotNull(injectionManager.getInstance(EnglishGreeting.class));
   }
@@ -76,7 +71,6 @@ public class InjectionManagerTest {
   public void testIsRegistrable() {
     InjectionManager injectionManager = Injections.createInjectionManager();
     assertTrue(injectionManager.isRegistrable(Binder.class));
-    assertTrue(injectionManager.isRegistrable(AbstractBinder.class));
     assertFalse(
       injectionManager.isRegistrable(
         org.glassfish.jersey.internal.inject.AbstractBinder.class
@@ -87,16 +81,10 @@ public class InjectionManagerTest {
 
   @Test
   public void testRegisterBinder() {
-    AbstractBinder binder = new AbstractBinder() {
-
-      @Override
-      protected void configure() {
-        bindAsContract(EnglishGreeting.class);
-      }
-    };
+    Module module = binder -> binder.bind(EnglishGreeting.class);
 
     InjectionManager injectionManager = Injections.createInjectionManager();
-    injectionManager.register(binder);
+    injectionManager.register(module);
     injectionManager.completeRegistration();
     assertNotNull(injectionManager.getInstance(EnglishGreeting.class));
   }

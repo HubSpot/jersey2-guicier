@@ -20,8 +20,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
+import com.google.inject.ProvisionException;
 import javax.inject.Singleton;
-import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.junit.After;
 import org.junit.Before;
@@ -230,7 +230,7 @@ public class SupplierContractsTest {
     assertSame(conversation.greetingSupplier, conversation.printableSupplier);
   }
 
-  @Test(expected = MultiException.class)
+  @Test(expected = ProvisionException.class)
   public void testClassFactoryFailedWrongImplementation() {
     BindingTestHelper.bind(
       injectionManager,
@@ -243,7 +243,7 @@ public class SupplierContractsTest {
     injectionManager.getInstance(Conversation.class);
   }
 
-  @Test(expected = MultiException.class)
+  @Test(expected = ProvisionException.class)
   public void testInstanceFactoryFailsWrongImplementation() {
     BindingTestHelper.bind(
       injectionManager,
@@ -256,7 +256,7 @@ public class SupplierContractsTest {
     injectionManager.getInstance(Conversation.class);
   }
 
-  @Test(expected = MultiException.class)
+  @Test(expected = ProvisionException.class)
   public void testFailsImplementationButInterfaceExpected() {
     BindingTestHelper.bind(
       injectionManager,

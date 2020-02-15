@@ -48,7 +48,7 @@ public class GuiceInjectionManager implements InjectionManager {
   @Override
   public void register(Object provider) throws IllegalArgumentException {
     if (isRegistrable(provider.getClass())) {
-      com.google.inject.Binder binder = (com.google.inject.Binder) provider;
+      com.google.inject.Module module = (com.google.inject.Module) provider;
       // TODO
     } else {
       throw new IllegalArgumentException();
@@ -57,7 +57,7 @@ public class GuiceInjectionManager implements InjectionManager {
 
   @Override
   public boolean isRegistrable(Class<?> clazz) {
-    return com.google.inject.Binder.class.isAssignableFrom(clazz);
+    return com.google.inject.Module.class.isAssignableFrom(clazz);
   }
 
   @Override

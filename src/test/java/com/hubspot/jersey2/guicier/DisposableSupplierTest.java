@@ -288,7 +288,7 @@ public class DisposableSupplierTest {
           .to(String.class)
           .in(RequestScoped.class);
 
-        binder.bind(Hk2RequestScope.class).to(RequestScope.class);
+        binder.bind(GuiceRequestScope.class).to(RequestScope.class);
       }
     );
 
@@ -328,7 +328,7 @@ public class DisposableSupplierTest {
           .to(String.class)
           .in(RequestScoped.class);
 
-        binder.bind(Hk2RequestScope.class).to(RequestScope.class);
+        binder.bind(GuiceRequestScope.class).to(RequestScope.class);
       }
     );
 
@@ -368,7 +368,7 @@ public class DisposableSupplierTest {
           .to(String.class)
           .in(RequestScoped.class);
 
-        binder.bind(Hk2RequestScope.class).to(RequestScope.class);
+        binder.bind(GuiceRequestScope.class).to(RequestScope.class);
       }
     );
 
@@ -424,7 +424,7 @@ public class DisposableSupplierTest {
 
         binder.bindAsContract(ComposedObject.class).in(RequestScoped.class);
 
-        binder.bind(Hk2RequestScope.class).to(RequestScope.class);
+        binder.bind(GuiceRequestScope.class).to(RequestScope.class);
       }
     );
 

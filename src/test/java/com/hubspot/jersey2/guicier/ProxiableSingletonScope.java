@@ -16,19 +16,20 @@
 
 package com.hubspot.jersey2.guicier;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import com.google.inject.ScopeAnnotation;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import com.google.inject.Key;
+import com.google.inject.Provider;
+import com.google.inject.Scope;
+import com.google.inject.Scopes;
+import javax.inject.Singleton;
 
 /**
- * This will be a scope for proxiable singletons. One of those singletons will be a factory.
+ * The context keeping the objects created in {@link ProxiableSingleton} scope.
  */
-@ScopeAnnotation
-@Retention(RUNTIME)
-@Target({ TYPE, METHOD })
-public @interface ProxiableSingleton {
+@Singleton
+public class ProxiableSingletonScope implements Scope {
+
+  @Override
+  public <T> Provider<T> scope(Key<T> key, Provider<T> unscoped) {
+    return Scopes.SINGLETON.scope(key, unscoped);
+  }
 }

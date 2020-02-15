@@ -53,7 +53,7 @@ public class SupplierProxyTest {
           .proxy(true)
           .in(ProxiableSingleton.class);
 
-        binder.bind(new ProxiableSingletonContext()).to(ProxiableSingletonContext.class);
+        binder.bind(new ProxiableSingletonScope()).to(ProxiableSingletonScope.class);
 
         binder.bindAsContract(Conversation.class);
       }
@@ -78,7 +78,7 @@ public class SupplierProxyTest {
           .proxy(true)
           .in(ProxiableSingleton.class);
 
-        binder.bind(new ProxiableSingletonContext()).to(ProxiableSingletonContext.class);
+        binder.bind(new ProxiableSingletonScope()).to(ProxiableSingletonScope.class);
 
         binder.bindAsContract(Conversation.class);
       }
