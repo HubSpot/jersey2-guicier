@@ -1,7 +1,6 @@
 package com.hubspot.jersey2.guicier;
 
 import javax.annotation.Priority;
-
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.internal.inject.InjectionManagerFactory;
 

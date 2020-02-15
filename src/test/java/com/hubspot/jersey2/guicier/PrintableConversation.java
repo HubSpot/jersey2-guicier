@@ -17,14 +17,12 @@
 package com.hubspot.jersey2.guicier;
 
 import java.util.function.Supplier;
-
 import javax.inject.Inject;
 
 /**
  * @author Petr Bouda
  */
 class PrintableConversation {
-
   @Inject
   Greeting greeting;
 
@@ -36,5 +34,4 @@ class PrintableConversation {
 
   @Inject
   Supplier<Printable> printableSupplier;
-
 }

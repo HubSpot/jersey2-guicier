@@ -1,23 +1,21 @@
 package com.hubspot.jersey2.guicier;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.glassfish.jersey.internal.inject.Binder;
 import org.glassfish.jersey.internal.inject.Binding;
 import org.glassfish.jersey.internal.inject.ForeignDescriptor;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.internal.inject.ServiceHolder;
 import org.glassfish.jersey.internal.inject.ServiceHolderImpl;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.TypeLiteral;
 
 public class GuiceInjectionManager implements InjectionManager {
   private Injector injector = Guice.createInjector(); // TODO
@@ -69,15 +67,18 @@ public class GuiceInjectionManager implements InjectionManager {
   }
 
   @Override
-  public <T> List<ServiceHolder<T>> getAllServiceHolders(Class<T> contractOrImpl, Annotation... qualifiers) {
+  public <T> List<ServiceHolder<T>> getAllServiceHolders(
+    Class<T> contractOrImpl,
+    Annotation... qualifiers
+  ) {
     switch (qualifiers.length) {
       case 0:
         TypeLiteral<T> typeLiteral = TypeLiteral.get(contractOrImpl);
         return injector
-            .findBindingsByType(typeLiteral)
-            .stream()
-            .map(this::asServiceHolder)
-            .collect(Collectors.toList());
+          .findBindingsByType(typeLiteral)
+          .stream()
+          .map(this::asServiceHolder)
+          .collect(Collectors.toList());
       case 1:
         Key<T> key = Key.get(contractOrImpl, qualifiers[0]);
         ServiceHolder<T> serviceHolder = asServiceHolder(injector.getBinding(key));
@@ -135,10 +136,10 @@ public class GuiceInjectionManager implements InjectionManager {
   public <T> List<T> getAllInstances(Type contractOrImpl) {
     TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(contractOrImpl);
     return injector
-        .findBindingsByType(typeLiteral)
-        .stream()
-        .map(binding -> binding.getProvider().get())
-        .collect(Collectors.toList());
+      .findBindingsByType(typeLiteral)
+      .stream()
+      .map(binding -> binding.getProvider().get())
+      .collect(Collectors.toList());
   }
 
   @Override
@@ -160,7 +161,9 @@ public class GuiceInjectionManager implements InjectionManager {
   private <T> ServiceHolder<T> asServiceHolder(com.google.inject.Binding<T> binding) {
     T instance = binding.getProvider().get();
     // TODO what are contract types?
-    Set<Type> contractTypes = Collections.singleton(binding.getKey().getTypeLiteral().getType());
+    Set<Type> contractTypes = Collections.singleton(
+      binding.getKey().getTypeLiteral().getType()
+    );
     return new ServiceHolderImpl<>(instance, contractTypes);
   }
 }

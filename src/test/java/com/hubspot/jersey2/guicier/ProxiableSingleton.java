@@ -22,9 +22,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
 import javax.inject.Scope;
-
 import org.glassfish.hk2.api.Proxiable;
 
 /**
@@ -35,5 +33,4 @@ import org.glassfish.hk2.api.Proxiable;
 @Retention(RUNTIME)
 @Target({ TYPE, METHOD })
 public @interface ProxiableSingleton {
-
 }

@@ -20,7 +20,6 @@ package com.hubspot.jersey2.guicier;
  * @author Petr Bouda
  */
 public class EnglishGreeting implements Greeting, Printable {
-
   static final String GREETING = "Hello";
 
   @Override

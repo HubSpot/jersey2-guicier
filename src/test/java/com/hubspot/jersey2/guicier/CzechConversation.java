@@ -17,18 +17,15 @@
 package com.hubspot.jersey2.guicier;
 
 import java.util.function.Supplier;
-
 import javax.inject.Inject;
 
 /**
  * @author Petr Bouda
  */
 class CzechConversation {
-
   @Inject
   CzechGreeting greeting;
 
   @Inject
   Supplier<CzechGreeting> greetingSupplier;
-
 }

@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.hubspot</groupId>
     <artifactId>basepom</artifactId>
-    <version>25.4</version>
+    <version>25.6-SNAPSHOT</version>
   </parent>
 
   <groupId>com.hubspot.jersey2</groupId>
@@ -13,7 +13,9 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <dep.jersey2.version>2.29</dep.jersey2.version>
+    <basepom.check.skip-prettier>false</basepom.check.skip-prettier>
+
+    <dep.jersey2.version>2.30</dep.jersey2.version>
   </properties>
 
   <dependencyManagement>

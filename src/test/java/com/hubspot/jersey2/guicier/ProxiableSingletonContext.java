@@ -17,9 +17,7 @@
 package com.hubspot.jersey2.guicier;
 
 import java.lang.annotation.Annotation;
-
 import javax.inject.Singleton;
-
 import org.glassfish.hk2.api.ActiveDescriptor;
 import org.glassfish.hk2.api.Context;
 import org.glassfish.hk2.api.ServiceHandle;
@@ -63,7 +61,6 @@ public class ProxiableSingletonContext implements Context<ProxiableSingleton> {
     descriptor.releaseCache();
 
     ((ActiveDescriptor<Object>) descriptor).dispose(value);
-
   }
 
   @Override
@@ -77,6 +74,5 @@ public class ProxiableSingletonContext implements Context<ProxiableSingleton> {
   }
 
   @Override
-  public void shutdown() {
-  }
+  public void shutdown() {}
 }

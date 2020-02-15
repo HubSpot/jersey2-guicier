@@ -21,9 +21,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
 import java.util.function.Supplier;
-
 import javax.inject.Singleton;
-
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.junit.After;
 import org.junit.Before;
@@ -35,7 +33,6 @@ import org.junit.Test;
  * @author Petr Bouda
  */
 public class SupplierClassBindingTest {
-
   private InjectionManager injectionManager;
 
   @Before
@@ -48,25 +45,33 @@ public class SupplierClassBindingTest {
     injectionManager.shutdown();
   }
 
-
   @Test
   public void testMessages() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class).to(Greeting.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(SupplierGreeting.class).to(Greeting.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     Conversation conversation = injectionManager.getInstance(Conversation.class);
     assertEquals(CzechGreeting.GREETING, conversation.greeting.getGreeting());
-    assertEquals(CzechGreeting.GREETING, conversation.greetingSupplier.get().getGreeting());
+    assertEquals(
+      CzechGreeting.GREETING,
+      conversation.greetingSupplier.get().getGreeting()
+    );
   }
 
   @Test
   public void testSupplierPerLookupInstancePerLookup() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class).to(Greeting.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(SupplierGreeting.class).to(Greeting.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     Greeting greeting1 = injectionManager.getInstance(Conversation.class).greeting;
     Greeting greeting2 = injectionManager.getInstance(Conversation.class).greeting;
@@ -75,9 +80,12 @@ public class SupplierClassBindingTest {
     assertNotSame(greeting1, greeting2);
     assertNotSame(greeting2, greeting3);
 
-    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class).greetingSupplier;
-    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class).greetingSupplier;
-    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class).greetingSupplier;
+    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
 
     assertNotSame(supplier1, supplier2);
     assertNotSame(supplier2, supplier3);
@@ -85,10 +93,13 @@ public class SupplierClassBindingTest {
 
   @Test
   public void testSupplierSingletonInstancePerLookup() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class, Singleton.class).to(Greeting.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(SupplierGreeting.class, Singleton.class).to(Greeting.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     Greeting greeting1 = injectionManager.getInstance(Conversation.class).greeting;
     Greeting greeting2 = injectionManager.getInstance(Conversation.class).greeting;
@@ -97,9 +108,12 @@ public class SupplierClassBindingTest {
     assertNotSame(greeting1, greeting2);
     assertNotSame(greeting2, greeting3);
 
-    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class).greetingSupplier;
-    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class).greetingSupplier;
-    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class).greetingSupplier;
+    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
 
     assertSame(supplier1, supplier2);
     assertSame(supplier2, supplier3);
@@ -107,10 +121,13 @@ public class SupplierClassBindingTest {
 
   @Test
   public void testSupplierPerLookupInstanceSingleton() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class).to(Greeting.class).in(Singleton.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(SupplierGreeting.class).to(Greeting.class).in(Singleton.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     Greeting greeting1 = injectionManager.getInstance(Conversation.class).greeting;
     Greeting greeting2 = injectionManager.getInstance(Conversation.class).greeting;
@@ -119,9 +136,12 @@ public class SupplierClassBindingTest {
     assertSame(greeting1, greeting2);
     assertSame(greeting2, greeting3);
 
-    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class).greetingSupplier;
-    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class).greetingSupplier;
-    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class).greetingSupplier;
+    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
 
     assertNotSame(supplier1, supplier2);
     assertNotSame(supplier2, supplier3);
@@ -129,10 +149,16 @@ public class SupplierClassBindingTest {
 
   @Test
   public void testSupplierSingletonInstanceSingleton() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class, Singleton.class).to(Greeting.class).in(Singleton.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(SupplierGreeting.class, Singleton.class)
+          .to(Greeting.class)
+          .in(Singleton.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     Greeting greeting1 = injectionManager.getInstance(Conversation.class).greeting;
     Greeting greeting2 = injectionManager.getInstance(Conversation.class).greeting;
@@ -141,9 +167,12 @@ public class SupplierClassBindingTest {
     assertSame(greeting1, greeting2);
     assertSame(greeting2, greeting3);
 
-    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class).greetingSupplier;
-    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class).greetingSupplier;
-    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class).greetingSupplier;
+    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
 
     assertSame(supplier1, supplier2);
     assertSame(supplier2, supplier3);
@@ -151,25 +180,47 @@ public class SupplierClassBindingTest {
 
   @Test
   public void testSupplierBeanNamed() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(TestSuppliers.TestSupplier.class).named(TestSuppliers.TEST).to(String.class);
-      binder.bindFactory(TestSuppliers.OtherTestSupplier.class).named(TestSuppliers.OTHER_TEST).to(String.class);
-      binder.bindAsContract(TestSuppliers.TargetSupplierBean.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(TestSuppliers.TestSupplier.class)
+          .named(TestSuppliers.TEST)
+          .to(String.class);
+        binder
+          .bindFactory(TestSuppliers.OtherTestSupplier.class)
+          .named(TestSuppliers.OTHER_TEST)
+          .to(String.class);
+        binder.bindAsContract(TestSuppliers.TargetSupplierBean.class);
+      }
+    );
 
-    TestSuppliers.TargetSupplierBean instance = injectionManager.getInstance(TestSuppliers.TargetSupplierBean.class);
+    TestSuppliers.TargetSupplierBean instance = injectionManager.getInstance(
+      TestSuppliers.TargetSupplierBean.class
+    );
     assertEquals(TestSuppliers.OTHER_TEST, instance.obj);
   }
 
   @Test
   public void testSupplierNamed() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(TestSuppliers.TestSupplier.class).named(TestSuppliers.TEST).to(String.class);
-      binder.bindFactory(TestSuppliers.OtherTestSupplier.class).named(TestSuppliers.OTHER_TEST).to(String.class);
-      binder.bindAsContract(TestSuppliers.TargetSupplier.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(TestSuppliers.TestSupplier.class)
+          .named(TestSuppliers.TEST)
+          .to(String.class);
+        binder
+          .bindFactory(TestSuppliers.OtherTestSupplier.class)
+          .named(TestSuppliers.OTHER_TEST)
+          .to(String.class);
+        binder.bindAsContract(TestSuppliers.TargetSupplier.class);
+      }
+    );
 
-    TestSuppliers.TargetSupplier instance = injectionManager.getInstance(TestSuppliers.TargetSupplier.class);
+    TestSuppliers.TargetSupplier instance = injectionManager.getInstance(
+      TestSuppliers.TargetSupplier.class
+    );
     assertEquals(TestSuppliers.OTHER_TEST, instance.supplier.get());
   }
 }

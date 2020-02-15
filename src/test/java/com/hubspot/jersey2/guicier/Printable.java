@@ -21,7 +21,5 @@ package com.hubspot.jersey2.guicier;
  */
 @FunctionalInterface
 public interface Printable {
-
   void print();
-
 }

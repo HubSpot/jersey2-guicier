@@ -26,14 +26,9 @@ import java.lang.reflect.Type;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.core.GenericType;
-
-import org.glassfish.jersey.inject.hk2.Hk2Helper;
-import org.glassfish.jersey.inject.hk2.Hk2RequestScope;
-import org.glassfish.jersey.inject.hk2.SupplierFactoryBridge;
 import org.glassfish.jersey.internal.inject.DisposableSupplier;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.process.internal.RequestScope;
@@ -48,11 +43,10 @@ import org.junit.Test;
  * @author Petr Bouda
  */
 public class DisposableSupplierTest {
-
-  private static final Type DISPOSABLE_SUPPLIER_TYPE = new GenericType<DisposableSupplier<String>>() {
-  }.getType();
-  private static final Type SUPPLIER_TYPE = new GenericType<Supplier<String>>() {
-  }.getType();
+  private static final Type DISPOSABLE_SUPPLIER_TYPE = new GenericType<DisposableSupplier<String>>() {}
+  .getType();
+  private static final Type SUPPLIER_TYPE = new GenericType<Supplier<String>>() {}
+  .getType();
 
   private InjectionManager injectionManager;
 
@@ -69,7 +63,10 @@ public class DisposableSupplierTest {
   @Test
   public void testBindSingletonClassDisposableSupplier() {
     BindingTestHelper.bind(
-        injectionManager, binder -> binder.bindFactory(DisposableSupplierImpl.class, Singleton.class).to(String.class));
+      injectionManager,
+      binder ->
+        binder.bindFactory(DisposableSupplierImpl.class, Singleton.class).to(String.class)
+    );
 
     Object supplier = injectionManager.getInstance(SUPPLIER_TYPE);
     Object disposableSupplier = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
@@ -80,7 +77,10 @@ public class DisposableSupplierTest {
 
   @Test
   public void testBindPerLookupClassDisposableSupplier() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(DisposableSupplierImpl.class).to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> binder.bindFactory(DisposableSupplierImpl.class).to(String.class)
+    );
 
     Object supplier = injectionManager.getInstance(SUPPLIER_TYPE);
     Object disposableSupplier = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
@@ -91,7 +91,10 @@ public class DisposableSupplierTest {
 
   @Test
   public void testBindInstanceDisposableSupplier() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(new DisposableSupplierImpl()).to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> binder.bindFactory(new DisposableSupplierImpl()).to(String.class)
+    );
 
     Object supplier = injectionManager.getInstance(SUPPLIER_TYPE);
     Object disposableSupplier = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
@@ -102,20 +105,29 @@ public class DisposableSupplierTest {
 
   @Test
   public void testNotBindClassDisposableSupplier() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(SupplierGreeting.class).to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> binder.bindFactory(SupplierGreeting.class).to(String.class)
+    );
     assertNull(injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE));
   }
 
   @Test
   public void testNotBindInstanceDisposableSupplier() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(new SupplierGreeting()).to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> binder.bindFactory(new SupplierGreeting()).to(String.class)
+    );
     assertNull(injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE));
   }
 
   @Test
   public void testOnlyIncrementSingletonSupplier() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(DisposableSupplierImpl.class, Singleton.class)
-        .to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder ->
+        binder.bindFactory(DisposableSupplierImpl.class, Singleton.class).to(String.class)
+    );
 
     Object instance1 = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
     assertEquals("1", ((DisposableSupplier<?>) instance1).get());
@@ -127,8 +139,10 @@ public class DisposableSupplierTest {
 
   @Test
   public void testOnlyIncrementInstanceSupplier() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(new DisposableSupplierImpl())
-        .to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> binder.bindFactory(new DisposableSupplierImpl()).to(String.class)
+    );
 
     Object instance1 = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
     assertEquals("1", ((DisposableSupplier<?>) instance1).get());
@@ -140,8 +154,10 @@ public class DisposableSupplierTest {
 
   @Test
   public void testOnlyIncrementPerLookupSupplier() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(DisposableSupplierImpl.class)
-        .to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> binder.bindFactory(DisposableSupplierImpl.class).to(String.class)
+    );
 
     Object instance1 = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
     assertEquals("1", ((DisposableSupplier<?>) instance1).get());
@@ -153,8 +169,11 @@ public class DisposableSupplierTest {
 
   @Test
   public void testOnlyIncrementSingletonInstances() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(DisposableSupplierImpl.class, Singleton.class)
-        .to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder ->
+        binder.bindFactory(DisposableSupplierImpl.class, Singleton.class).to(String.class)
+    );
 
     Object instance1 = injectionManager.getInstance(String.class);
     assertEquals("1", instance1);
@@ -166,8 +185,10 @@ public class DisposableSupplierTest {
 
   @Test
   public void testOnlyIncrementInstanceInstance() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(new DisposableSupplierImpl())
-        .to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> binder.bindFactory(new DisposableSupplierImpl()).to(String.class)
+    );
 
     Object instance1 = injectionManager.getInstance(String.class);
     assertEquals("1", instance1);
@@ -179,9 +200,10 @@ public class DisposableSupplierTest {
 
   @Test
   public void testOnlyIncrementPerLookupInstance() {
-    BindingTestHelper
-        .bind(injectionManager, binder -> binder.bindFactory(DisposableSupplierImpl.class)
-            .to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> binder.bindFactory(DisposableSupplierImpl.class).to(String.class)
+    );
 
     Object instance1 = injectionManager.getInstance(String.class);
     assertEquals("1", instance1);
@@ -193,20 +215,26 @@ public class DisposableSupplierTest {
 
   @Test
   public void testDisposeSingletonSupplier() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(DisposableSupplierImpl.class, Singleton.class)
-        .to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder ->
+        binder.bindFactory(DisposableSupplierImpl.class, Singleton.class).to(String.class)
+    );
 
     // 1-1
-    DisposableSupplier<String> supplier1 =
-        injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
+    DisposableSupplier<String> supplier1 = injectionManager.getInstance(
+      DISPOSABLE_SUPPLIER_TYPE
+    );
     String instance1 = supplier1.get();
     // 2-2
-    DisposableSupplier<String> supplier2 =
-        injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
+    DisposableSupplier<String> supplier2 = injectionManager.getInstance(
+      DISPOSABLE_SUPPLIER_TYPE
+    );
     String instance2 = supplier2.get();
     // 3-3
-    DisposableSupplier<String> supplier3 =
-        injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
+    DisposableSupplier<String> supplier3 = injectionManager.getInstance(
+      DISPOSABLE_SUPPLIER_TYPE
+    );
     supplier3.get();
     // 2-2
     supplier1.dispose(instance1);
@@ -220,20 +248,25 @@ public class DisposableSupplierTest {
 
   @Test
   public void testDisposePerLookupSupplier() {
-    BindingTestHelper.bind(injectionManager, binder -> binder.bindFactory(DisposableSupplierImpl.class)
-        .to(String.class));
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> binder.bindFactory(DisposableSupplierImpl.class).to(String.class)
+    );
 
     // 1
-    DisposableSupplier<String> supplier1 =
-        injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
+    DisposableSupplier<String> supplier1 = injectionManager.getInstance(
+      DISPOSABLE_SUPPLIER_TYPE
+    );
     String instance1 = supplier1.get();
     // 1
-    DisposableSupplier<String> supplier2 =
-        injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
+    DisposableSupplier<String> supplier2 = injectionManager.getInstance(
+      DISPOSABLE_SUPPLIER_TYPE
+    );
     String instance2 = supplier2.get();
     // 1
-    DisposableSupplier<String> supplier3 =
-        injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
+    DisposableSupplier<String> supplier3 = injectionManager.getInstance(
+      DISPOSABLE_SUPPLIER_TYPE
+    );
     supplier3.get();
     // 0
     supplier1.dispose(instance1);
@@ -247,28 +280,35 @@ public class DisposableSupplierTest {
 
   @Test
   public void testDisposeSingletonSupplierRequestScopedInstance() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(DisposableSupplierImpl.class, Singleton.class)
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(DisposableSupplierImpl.class, Singleton.class)
           .to(String.class)
           .in(RequestScoped.class);
 
-      binder.bind(Hk2RequestScope.class)
-          .to(RequestScope.class);
-    });
+        binder.bind(Hk2RequestScope.class).to(RequestScope.class);
+      }
+    );
 
     RequestScope request = injectionManager.getInstance(RequestScope.class);
     AtomicReference<Supplier<String>> atomicSupplier = new AtomicReference<>();
-    request.runInScope(() -> {
-      // Save Singleton Supplier for later check that the instance was disposed.
-      Supplier<String> supplier = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
-      atomicSupplier.set(supplier);
+    request.runInScope(
+      () -> {
+        // Save Singleton Supplier for later check that the instance was disposed.
+        Supplier<String> supplier = injectionManager.getInstance(
+          DISPOSABLE_SUPPLIER_TYPE
+        );
+        atomicSupplier.set(supplier);
 
-      // All instances should be the same because they are request scoped.
-      Object instance1 = injectionManager.getInstance(String.class);
-      assertEquals("1", instance1);
-      Object instance2 = injectionManager.getInstance(String.class);
-      assertEquals("1", instance2);
-    });
+        // All instances should be the same because they are request scoped.
+        Object instance1 = injectionManager.getInstance(String.class);
+        assertEquals("1", instance1);
+        Object instance2 = injectionManager.getInstance(String.class);
+        assertEquals("1", instance2);
+      }
+    );
 
     Supplier<String> cleanedSupplier = atomicSupplier.get();
     // Next should be 1-1
@@ -280,28 +320,35 @@ public class DisposableSupplierTest {
    */
   @Test
   public void testDisposePerLookupSupplierRequestScopedInstance() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(DisposableSupplierImpl.class)
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(DisposableSupplierImpl.class)
           .to(String.class)
           .in(RequestScoped.class);
 
-      binder.bind(Hk2RequestScope.class)
-          .to(RequestScope.class);
-    });
+        binder.bind(Hk2RequestScope.class).to(RequestScope.class);
+      }
+    );
 
     RequestScope request = injectionManager.getInstance(RequestScope.class);
     AtomicReference<Supplier<String>> atomicSupplier = new AtomicReference<>();
-    request.runInScope(() -> {
-      // Save Singleton Supplier for later check that the instance was disposed.
-      Supplier<String> supplier = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
-      atomicSupplier.set(supplier);
+    request.runInScope(
+      () -> {
+        // Save Singleton Supplier for later check that the instance was disposed.
+        Supplier<String> supplier = injectionManager.getInstance(
+          DISPOSABLE_SUPPLIER_TYPE
+        );
+        atomicSupplier.set(supplier);
 
-      // All instances should be the same because they are request scoped.
-      Object instance1 = injectionManager.getInstance(String.class);
-      assertEquals("1", instance1);
-      Object instance2 = injectionManager.getInstance(String.class);
-      assertEquals("1", instance2);
-    });
+        // All instances should be the same because they are request scoped.
+        Object instance1 = injectionManager.getInstance(String.class);
+        assertEquals("1", instance1);
+        Object instance2 = injectionManager.getInstance(String.class);
+        assertEquals("1", instance2);
+      }
+    );
 
     Supplier<String> cleanedSupplier = atomicSupplier.get();
     // Next should be 1
@@ -313,36 +360,46 @@ public class DisposableSupplierTest {
    */
   @Test
   public void testDisposeSingletonSupplierMultiRequestScoped() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(DisposableSupplierImpl.class)
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(DisposableSupplierImpl.class)
           .to(String.class)
           .in(RequestScoped.class);
 
-      binder.bind(Hk2RequestScope.class)
-          .to(RequestScope.class);
-    });
+        binder.bind(Hk2RequestScope.class).to(RequestScope.class);
+      }
+    );
 
     RequestScope request = injectionManager.getInstance(RequestScope.class);
     AtomicReference<Supplier<String>> firstSupplier = new AtomicReference<>();
     AtomicReference<Supplier<String>> secondSupplier = new AtomicReference<>();
-    request.runInScope(() -> {
-      Supplier<String> supplier1 = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
-      firstSupplier.set(supplier1);
+    request.runInScope(
+      () -> {
+        Supplier<String> supplier1 = injectionManager.getInstance(
+          DISPOSABLE_SUPPLIER_TYPE
+        );
+        firstSupplier.set(supplier1);
 
-      Object instance1 = injectionManager.getInstance(String.class);
-      assertEquals("1", instance1);
+        Object instance1 = injectionManager.getInstance(String.class);
+        assertEquals("1", instance1);
 
-      request.runInScope(() -> {
-        // Save Singleton Supplier for later check that the instance was disposed.
-        Supplier<String> supplier2 =
-            injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
-        secondSupplier.set(supplier2);
+        request.runInScope(
+          () -> {
+            // Save Singleton Supplier for later check that the instance was disposed.
+            Supplier<String> supplier2 = injectionManager.getInstance(
+              DISPOSABLE_SUPPLIER_TYPE
+            );
+            secondSupplier.set(supplier2);
 
-        Object instance2 = injectionManager.getInstance(String.class);
-        // 1-2 because the same static class is used in inherited runInScope
-        assertEquals("1", instance2);
-      });
-    });
+            Object instance2 = injectionManager.getInstance(String.class);
+            // 1-2 because the same static class is used in inherited runInScope
+            assertEquals("1", instance2);
+          }
+        );
+      }
+    );
 
     Supplier<String> cleanedSupplier1 = firstSupplier.get();
     Supplier<String> cleanedSupplier2 = secondSupplier.get();
@@ -358,30 +415,36 @@ public class DisposableSupplierTest {
    */
   @Test
   public void testDisposeComposedObjectWithPerLookupFields() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(DisposableSupplierImpl.class, Singleton.class)
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(DisposableSupplierImpl.class, Singleton.class)
           .to(String.class);
 
-      binder.bindAsContract(ComposedObject.class)
-          .in(RequestScoped.class);
+        binder.bindAsContract(ComposedObject.class).in(RequestScoped.class);
 
-      binder.bind(Hk2RequestScope.class)
-          .to(RequestScope.class);
-    });
+        binder.bind(Hk2RequestScope.class).to(RequestScope.class);
+      }
+    );
 
     RequestScope request = injectionManager.getInstance(RequestScope.class);
     AtomicReference<Supplier<String>> atomicSupplier = new AtomicReference<>();
-    request.runInScope(() -> {
-      // Save Singleton Supplier for later check that the instance was disposed.
-      Supplier<String> supplier = injectionManager.getInstance(DISPOSABLE_SUPPLIER_TYPE);
-      atomicSupplier.set(supplier);
+    request.runInScope(
+      () -> {
+        // Save Singleton Supplier for later check that the instance was disposed.
+        Supplier<String> supplier = injectionManager.getInstance(
+          DISPOSABLE_SUPPLIER_TYPE
+        );
+        atomicSupplier.set(supplier);
 
-      // All instances should be the same because they are request scoped.
-      ComposedObject instance = injectionManager.getInstance(ComposedObject.class);
-      assertEquals("1", instance.first);
-      assertEquals("2", instance.second);
-      assertEquals("3", instance.third);
-    });
+        // All instances should be the same because they are request scoped.
+        ComposedObject instance = injectionManager.getInstance(ComposedObject.class);
+        assertEquals("1", instance.first);
+        assertEquals("2", instance.second);
+        assertEquals("3", instance.third);
+      }
+    );
 
     Supplier<String> cleanedSupplier = atomicSupplier.get();
     // Next should be 4
@@ -389,7 +452,6 @@ public class DisposableSupplierTest {
   }
 
   private static class ComposedObject {
-
     @Inject
     String first;
 

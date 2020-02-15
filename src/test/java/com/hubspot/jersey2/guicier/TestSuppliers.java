@@ -17,7 +17,6 @@
 package com.hubspot.jersey2.guicier;
 
 import java.util.function.Supplier;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -25,7 +24,6 @@ import javax.inject.Named;
  * Set of suppliers to inject.
  */
 public class TestSuppliers {
-
   static final String TEST = "Test";
   static final String OTHER_TEST = "OtherTest";
 
@@ -42,6 +40,7 @@ public class TestSuppliers {
   }
 
   public static class TestSupplier implements Supplier<String> {
+
     @Override
     public String get() {
       return TEST;
@@ -49,6 +48,7 @@ public class TestSuppliers {
   }
 
   public static class OtherTestSupplier implements Supplier<String> {
+
     @Override
     public String get() {
       return OTHER_TEST;

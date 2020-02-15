@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
 import javax.inject.Singleton;
-
 import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.junit.After;
@@ -34,7 +33,6 @@ import org.junit.Test;
  * @author Petr Bouda
  */
 public class SupplierContractsTest {
-
   private InjectionManager injectionManager;
 
   @Before
@@ -47,13 +45,15 @@ public class SupplierContractsTest {
     injectionManager.shutdown();
   }
 
-
   @Test
   public void testClassFactoryInstanceInterface() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class).to(Greeting.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(SupplierGreeting.class).to(Greeting.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     Conversation conversation = injectionManager.getInstance(Conversation.class);
     assertNotNull(conversation.greeting);
@@ -62,22 +62,30 @@ public class SupplierContractsTest {
 
   @Test
   public void testClassFactoryInstanceImplementation() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class).to(CzechGreeting.class);
-      binder.bindAsContract(CzechConversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(SupplierGreeting.class).to(CzechGreeting.class);
+        binder.bindAsContract(CzechConversation.class);
+      }
+    );
 
-    CzechConversation conversation = injectionManager.getInstance(CzechConversation.class);
+    CzechConversation conversation = injectionManager.getInstance(
+      CzechConversation.class
+    );
     assertNotNull(conversation.greeting);
     assertNotNull(conversation.greetingSupplier.get());
   }
 
   @Test
   public void testInstanceFactoryInstanceInterface() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(new SupplierGreeting()).to(Greeting.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(new SupplierGreeting()).to(Greeting.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     Conversation conversation = injectionManager.getInstance(Conversation.class);
     assertNotNull(conversation.greeting);
@@ -86,26 +94,34 @@ public class SupplierContractsTest {
 
   @Test
   public void testInstanceFactoryInstanceImplementation() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(new SupplierGreeting()).to(CzechGreeting.class);
-      binder.bindAsContract(CzechConversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(new SupplierGreeting()).to(CzechGreeting.class);
+        binder.bindAsContract(CzechConversation.class);
+      }
+    );
 
-    CzechConversation conversation = injectionManager.getInstance(CzechConversation.class);
+    CzechConversation conversation = injectionManager.getInstance(
+      CzechConversation.class
+    );
     assertNotNull(conversation.greeting);
     assertNotNull(conversation.greetingSupplier.get());
   }
 
   @Test
   public void testClassFactoryMultipleContracts() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class)
-          .to(Greeting.class)
-          .to(Printable.class);
-      binder.bindAsContract(PrintableConversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(SupplierGreeting.class).to(Greeting.class).to(Printable.class);
+        binder.bindAsContract(PrintableConversation.class);
+      }
+    );
 
-    PrintableConversation conversation = injectionManager.getInstance(PrintableConversation.class);
+    PrintableConversation conversation = injectionManager.getInstance(
+      PrintableConversation.class
+    );
     assertNotNull(conversation.greeting);
     assertNotNull(conversation.printable);
     assertNotNull(conversation.greetingSupplier);
@@ -117,14 +133,20 @@ public class SupplierContractsTest {
 
   @Test
   public void testClassFactorySingletonMultipleContracts() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class, Singleton.class)
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(SupplierGreeting.class, Singleton.class)
           .to(Greeting.class)
           .to(Printable.class);
-      binder.bindAsContract(PrintableConversation.class);
-    });
+        binder.bindAsContract(PrintableConversation.class);
+      }
+    );
 
-    PrintableConversation conversation = injectionManager.getInstance(PrintableConversation.class);
+    PrintableConversation conversation = injectionManager.getInstance(
+      PrintableConversation.class
+    );
     assertNotNull(conversation.greeting);
     assertNotNull(conversation.printable);
     assertNotNull(conversation.greetingSupplier);
@@ -136,15 +158,21 @@ public class SupplierContractsTest {
 
   @Test
   public void testClassFactoryMultipleContractsSingleton() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class)
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(SupplierGreeting.class)
           .to(Greeting.class)
           .to(Printable.class)
           .in(Singleton.class);
-      binder.bindAsContract(PrintableConversation.class);
-    });
+        binder.bindAsContract(PrintableConversation.class);
+      }
+    );
 
-    PrintableConversation conversation = injectionManager.getInstance(PrintableConversation.class);
+    PrintableConversation conversation = injectionManager.getInstance(
+      PrintableConversation.class
+    );
     assertNotNull(conversation.greeting);
     assertNotNull(conversation.printable);
     assertNotNull(conversation.greetingSupplier);
@@ -156,14 +184,17 @@ public class SupplierContractsTest {
 
   @Test
   public void testInstanceFactoryMultipleContracts() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(new SupplierGreeting())
-          .to(Greeting.class)
-          .to(Printable.class);
-      binder.bindAsContract(PrintableConversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(new SupplierGreeting()).to(Greeting.class).to(Printable.class);
+        binder.bindAsContract(PrintableConversation.class);
+      }
+    );
 
-    PrintableConversation conversation = injectionManager.getInstance(PrintableConversation.class);
+    PrintableConversation conversation = injectionManager.getInstance(
+      PrintableConversation.class
+    );
     assertNotNull(conversation.greeting);
     assertNotNull(conversation.printable);
     assertNotNull(conversation.greetingSupplier);
@@ -175,15 +206,21 @@ public class SupplierContractsTest {
 
   @Test
   public void testInstanceFactoryMultipleContractsSingleton() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(new SupplierGreeting())
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(new SupplierGreeting())
           .to(Greeting.class)
           .to(Printable.class)
           .in(Singleton.class);
-      binder.bindAsContract(PrintableConversation.class);
-    });
+        binder.bindAsContract(PrintableConversation.class);
+      }
+    );
 
-    PrintableConversation conversation = injectionManager.getInstance(PrintableConversation.class);
+    PrintableConversation conversation = injectionManager.getInstance(
+      PrintableConversation.class
+    );
     assertNotNull(conversation.greeting);
     assertNotNull(conversation.printable);
     assertNotNull(conversation.greetingSupplier);
@@ -195,30 +232,39 @@ public class SupplierContractsTest {
 
   @Test(expected = MultiException.class)
   public void testClassFactoryFailedWrongImplementation() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class).to(EnglishGreeting.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(SupplierGreeting.class).to(EnglishGreeting.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     injectionManager.getInstance(Conversation.class);
   }
 
   @Test(expected = MultiException.class)
   public void testInstanceFactoryFailsWrongImplementation() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(new SupplierGreeting()).to(EnglishGreeting.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(new SupplierGreeting()).to(EnglishGreeting.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     injectionManager.getInstance(Conversation.class);
   }
 
   @Test(expected = MultiException.class)
   public void testFailsImplementationButInterfaceExpected() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(new SupplierGreeting()).to(CzechGreeting.class);
-      binder.bindAsContract(Conversation.class);
-    });
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder.bindFactory(new SupplierGreeting()).to(CzechGreeting.class);
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     injectionManager.getInstance(Conversation.class);
   }

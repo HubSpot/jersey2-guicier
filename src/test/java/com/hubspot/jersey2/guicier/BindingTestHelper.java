@@ -17,7 +17,6 @@
 package com.hubspot.jersey2.guicier;
 
 import java.util.function.Consumer;
-
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.internal.inject.Injections;
@@ -35,8 +34,12 @@ class BindingTestHelper {
    * @param injectionManager injection manager which accepts the consumer.
    * @param bindConsumer     consumer to populate a binder.
    */
-  static void bind(InjectionManager injectionManager, Consumer<AbstractBinder> bindConsumer) {
+  static void bind(
+    InjectionManager injectionManager,
+    Consumer<AbstractBinder> bindConsumer
+  ) {
     AbstractBinder binder = new AbstractBinder() {
+
       @Override
       protected void configure() {
         bindConsumer.accept(this);

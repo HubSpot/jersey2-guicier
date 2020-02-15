@@ -21,12 +21,10 @@ package com.hubspot.jersey2.guicier;
  */
 @FunctionalInterface
 public interface Greeting {
-
   /**
    * Returns greeting in a specific language.
    *
    * @return type of the greeting.
    */
   String getGreeting();
-
 }

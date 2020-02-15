@@ -22,7 +22,6 @@ import java.util.function.Supplier;
  * @author Petr Bouda
  */
 public class SupplierGreeting implements Supplier<Greeting> {
-
   private final String greetingType;
 
   /**

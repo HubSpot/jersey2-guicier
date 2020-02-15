@@ -38,6 +38,7 @@ public class InjectionManagerTest {
   @Test
   public void testServiceLocatorParent() {
     AbstractBinder binder = new AbstractBinder() {
+
       @Override
       protected void configure() {
         bindAsContract(EnglishGreeting.class);
@@ -52,12 +53,16 @@ public class InjectionManagerTest {
 
   @Test
   public void testInjectionManagerParent() {
-    ClassBinding<EnglishGreeting> greetingBinding = Bindings.serviceAsContract(EnglishGreeting.class);
+    ClassBinding<EnglishGreeting> greetingBinding = Bindings.serviceAsContract(
+      EnglishGreeting.class
+    );
     InjectionManager parentInjectionManager = Injections.createInjectionManager();
     parentInjectionManager.register(greetingBinding);
     parentInjectionManager.completeRegistration();
 
-    InjectionManager injectionManager = Injections.createInjectionManager(parentInjectionManager);
+    InjectionManager injectionManager = Injections.createInjectionManager(
+      parentInjectionManager
+    );
     injectionManager.completeRegistration();
     assertNotNull(injectionManager.getInstance(EnglishGreeting.class));
   }
@@ -72,13 +77,18 @@ public class InjectionManagerTest {
     InjectionManager injectionManager = Injections.createInjectionManager();
     assertTrue(injectionManager.isRegistrable(Binder.class));
     assertTrue(injectionManager.isRegistrable(AbstractBinder.class));
-    assertFalse(injectionManager.isRegistrable(org.glassfish.jersey.internal.inject.AbstractBinder.class));
+    assertFalse(
+      injectionManager.isRegistrable(
+        org.glassfish.jersey.internal.inject.AbstractBinder.class
+      )
+    );
     assertFalse(injectionManager.isRegistrable(String.class));
   }
 
   @Test
   public void testRegisterBinder() {
     AbstractBinder binder = new AbstractBinder() {
+
       @Override
       protected void configure() {
         bindAsContract(EnglishGreeting.class);

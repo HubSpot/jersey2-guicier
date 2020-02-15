@@ -30,7 +30,6 @@ import org.junit.Test;
  * @author Petr Bouda
  */
 public class SupplierProxyTest {
-
   private InjectionManager injectionManager;
 
   @Before
@@ -45,41 +44,51 @@ public class SupplierProxyTest {
 
   @Test
   public void testClassSupplierProxy() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(SupplierGreeting.class)
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(SupplierGreeting.class)
           .to(Greeting.class)
           .proxy(true)
           .in(ProxiableSingleton.class);
 
-      binder.bind(new ProxiableSingletonContext())
-          .to(ProxiableSingletonContext.class);
+        binder.bind(new ProxiableSingletonContext()).to(ProxiableSingletonContext.class);
 
-      binder.bindAsContract(Conversation.class);
-    });
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     Conversation conversation = injectionManager.getInstance(Conversation.class);
     assertTrue(conversation.greeting.getClass().getName().startsWith("com.sun.proxy"));
-    assertFalse(conversation.greetingSupplier.getClass().getName().startsWith("com.sun.proxy"));
+    assertFalse(
+      conversation.greetingSupplier.getClass().getName().startsWith("com.sun.proxy")
+    );
     injectionManager.shutdown();
   }
 
   @Test
   public void testInstanceSupplierProxy() {
-    BindingTestHelper.bind(injectionManager, binder -> {
-      binder.bindFactory(new SupplierGreeting())
+    BindingTestHelper.bind(
+      injectionManager,
+      binder -> {
+        binder
+          .bindFactory(new SupplierGreeting())
           .to(Greeting.class)
           .proxy(true)
           .in(ProxiableSingleton.class);
 
-      binder.bind(new ProxiableSingletonContext())
-          .to(ProxiableSingletonContext.class);
+        binder.bind(new ProxiableSingletonContext()).to(ProxiableSingletonContext.class);
 
-      binder.bindAsContract(Conversation.class);
-    });
+        binder.bindAsContract(Conversation.class);
+      }
+    );
 
     Conversation conversation = injectionManager.getInstance(Conversation.class);
     assertTrue(conversation.greeting.getClass().getName().startsWith("com.sun.proxy"));
-    assertFalse(conversation.greetingSupplier.getClass().getName().startsWith("com.sun.proxy"));
+    assertFalse(
+      conversation.greetingSupplier.getClass().getName().startsWith("com.sun.proxy")
+    );
     injectionManager.shutdown();
   }
 }
