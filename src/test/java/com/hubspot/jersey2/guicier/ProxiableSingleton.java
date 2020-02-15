@@ -20,14 +20,14 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.google.inject.ScopeAnnotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import javax.inject.Scope;
 
 /**
  * This will be a scope for proxiable singletons. One of those singletons will be a factory.
  */
-@ScopeAnnotation
+@Scope
 @Retention(RUNTIME)
 @Target({ TYPE, METHOD })
 public @interface ProxiableSingleton {

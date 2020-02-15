@@ -3,11 +3,11 @@ package com.hubspot.jersey2.guicier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.Scopes;
 import com.google.inject.Stage;
 import com.google.inject.TypeLiteral;
 import com.google.inject.binder.ScopedBindingBuilder;
@@ -21,20 +21,29 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.inject.Singleton;
 import org.glassfish.jersey.internal.inject.Binder;
 import org.glassfish.jersey.internal.inject.Binding;
 import org.glassfish.jersey.internal.inject.ClassBinding;
 import org.glassfish.jersey.internal.inject.ForeignDescriptor;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.internal.inject.InstanceBinding;
+import org.glassfish.jersey.internal.inject.PerLookup;
 import org.glassfish.jersey.internal.inject.ServiceHolder;
 import org.glassfish.jersey.internal.inject.ServiceHolderImpl;
 import org.glassfish.jersey.internal.inject.SupplierClassBinding;
 import org.glassfish.jersey.internal.inject.SupplierInstanceBinding;
 
 public class GuiceInjectionManager implements InjectionManager {
-  private final Stage stage = Stage.PRODUCTION; // TODO customizable?
-  private final ImmutableList.Builder<Module> builder = ImmutableList.builder();
+  private final Stage stage = Stage.DEVELOPMENT; // TODO customizable?
+  private final ImmutableList.Builder<Module> builder = ImmutableList
+    .<Module>builder()
+    .add(
+      binder -> {
+        binder.bindScope(PerLookup.class, Scopes.NO_SCOPE);
+        // TODO per-thread
+      }
+    );
   private volatile Injector injector;
 
   @Override
@@ -71,6 +80,7 @@ public class GuiceInjectionManager implements InjectionManager {
         binder -> {
           for (Key<Object> bindingKey : bindingKeys) {
             binder.bind(bindingKey).toInstance(instance);
+            binder.bind(supplierKey(bindingKey)).toInstance(() -> instance);
           }
         }
       );
@@ -86,24 +96,30 @@ public class GuiceInjectionManager implements InjectionManager {
             } else {
               scope(binder.bind(bindingKey).to(implementation), bindingScope);
             }
+
+            Provider<Object> provider = binder.getProvider(bindingKey);
+            binder.bind(supplierKey(bindingKey)).toInstance(provider::get);
           }
         }
       );
     } else if (binding instanceof SupplierInstanceBinding) {
       SupplierInstanceBinding<?> supplierBinding = (SupplierInstanceBinding<?>) binding;
-      Supplier<?> supplier = supplierBinding.getSupplier();
+      @SuppressWarnings("unchecked")
+      Supplier<Object> supplier = (Supplier<Object>) supplierBinding.getSupplier();
 
       builder.add(
         binder -> {
           for (Key<Object> bindingKey : bindingKeys) {
             scope(binder.bind(bindingKey).toProvider(supplier::get), bindingScope);
+
+            // go through a provider to make sure we respect the binding scope
+            Provider<Object> provider = binder.getProvider(bindingKey);
+            binder.bind(supplierKey(bindingKey)).toInstance(provider::get);
           }
         }
       );
     } else if (binding instanceof SupplierClassBinding) {
       SupplierClassBinding<?> supplierClassBinding = (SupplierClassBinding<?>) binding;
-      Class<? extends Supplier<?>> supplierClass = supplierClassBinding.getSupplierClass();
-      Class<? extends Annotation> supplierScope = supplierClassBinding.getSupplierScope();
 
       builder.add(
         binder -> {
@@ -116,15 +132,7 @@ public class GuiceInjectionManager implements InjectionManager {
 
             Provider<Object> provider = () -> supplierProvider.get().get();
             scope(binder.bind(bindingKey).toProvider(provider), bindingScope);
-
-            @SuppressWarnings("unchecked")
-            Key<Supplier<Object>> supplierKey = (Key<Supplier<Object>>) bindingKey.ofType(
-              Types.newParameterizedType(
-                Supplier.class,
-                bindingKey.getTypeLiteral().getType()
-              )
-            );
-            binder.bind(supplierKey).toProvider(supplierProvider);
+            binder.bind(supplierKey(bindingKey)).toProvider(supplierProvider);
           }
         }
       );
@@ -214,7 +222,8 @@ public class GuiceInjectionManager implements InjectionManager {
   @Override
   @SuppressWarnings("unchecked")
   public <T> T getInstance(Type contractOrImpl) {
-    return (T) injector.getInstance(Key.get(contractOrImpl));
+    // TODO support just-in-time bindings?
+    return (T) injector.getExistingBinding(Key.get(contractOrImpl));
   }
 
   @Override
@@ -303,33 +312,27 @@ public class GuiceInjectionManager implements InjectionManager {
       supplierClassBinding.getSupplierClass()
     );
 
-    // TODO handle more than Singleton?
-    if (supplierClassBinding.getSupplierScope() == null) {
+    Class<? extends Annotation> scope = supplierClassBinding.getSupplierScope();
+    if (scope == null || scope == PerLookup.class) {
       return supplierProvider;
-    } else {
+    } else if (scope == Singleton.class) {
       @SuppressWarnings("unchecked")
-      Key<Supplier<Object>> supplierKey = (Key<Supplier<Object>>) Key.get(
+      Key<Supplier<Object>> supplierKey = (Key<Supplier<Object>>) bindingKey.ofType(
         Types.newParameterizedType(Supplier.class, bindingKey.getTypeLiteral().getType())
       );
 
-      return new Provider<Supplier<Object>>() {
-        Provider<Supplier<Object>> supplierProvider = null;
-
-        @Inject
-        public void setInjector(Injector injector) {
-          supplierProvider =
-            injector
-              .getScopeBindings()
-              .get(supplierClassBinding.getSupplierScope())
-              .scope(supplierKey, supplierProvider);
-        }
-
-        @Override
-        public Supplier<Object> get() {
-          return supplierProvider.get();
-        }
-      };
+      return Scopes.SINGLETON.scope(supplierKey, supplierProvider);
+    } else {
+      // TODO support more than PerLookup/Singleton?
+      throw new IllegalStateException(/* TODO */);
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> Key<Supplier<T>> supplierKey(Key<T> key) {
+    return (Key<Supplier<T>>) key.ofType(
+      Types.newParameterizedType(Supplier.class, key.getTypeLiteral().getType())
+    );
   }
 
   private static void scope(
