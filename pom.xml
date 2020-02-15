@@ -21,6 +21,12 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <!-- Re-defined to remove Guava exclusion -->
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>${dep.guice.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.glassfish.jersey.inject</groupId>
         <artifactId>jersey-hk2</artifactId>
         <version>${dep.jersey2.version}</version>

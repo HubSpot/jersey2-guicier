@@ -10,7 +10,7 @@ public class GuiceInjectionManagerFactory implements InjectionManagerFactory {
 
   @Override
   public InjectionManager create() {
-    return null;
+    return create(null);
   }
 
   @Override
@@ -23,6 +23,6 @@ public class GuiceInjectionManagerFactory implements InjectionManagerFactory {
       throw new IllegalArgumentException(/* TODO */);
     }
 
-    return null;
+    return new GuiceInjectionManager();
   }
 }
