@@ -130,13 +130,6 @@ public class GuiceInjectionManager implements InjectionManager {
               supplierClassBinding.getSupplierScope()
             );
 
-            /*
-            @Provides
-            @supplierClassBinding.getScope()
-            public bindingKey.getTypeLiteral() provideObject(supplierKey(bindingKey) supplier) {
-              return supplier.get();
-            }
-             */
             Provider<Supplier<Object>> supplierProvider = binder.getProvider(
               supplierKey(bindingKey)
             );
