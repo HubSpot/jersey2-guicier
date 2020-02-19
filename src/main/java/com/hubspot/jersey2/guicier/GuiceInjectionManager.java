@@ -15,13 +15,11 @@ import com.google.inject.name.Names;
 import com.google.inject.util.Types;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.glassfish.jersey.internal.inject.Binder;
 import org.glassfish.jersey.internal.inject.Binding;
 import org.glassfish.jersey.internal.inject.ClassBinding;
@@ -35,16 +33,37 @@ import org.glassfish.jersey.internal.inject.SupplierClassBinding;
 import org.glassfish.jersey.internal.inject.SupplierInstanceBinding;
 
 public class GuiceInjectionManager implements InjectionManager {
-  private final Stage stage = Stage.PRODUCTION; // TODO customizable?
-  private final ImmutableList.Builder<Module> builder = ImmutableList
-    .<Module>builder()
-    .add(
-      binder -> {
-        binder.bindScope(PerLookup.class, Scopes.NO_SCOPE);
-        // TODO per-thread
-      }
-    );
+  private final Injector parent;
+  private final Stage stage;
+  private final ImmutableList.Builder<Module> modules;
   private volatile Injector injector;
+
+  public GuiceInjectionManager(Object parent) {
+    this.parent = resolveParentInjector(parent);
+    this.stage = Stage.PRODUCTION; // TODO customizable?
+    this.modules =
+      ImmutableList
+        .<Module>builder()
+        .add(
+          binder -> {
+            binder.bindScope(PerLookup.class, Scopes.NO_SCOPE);
+            // TODO per-thread
+          }
+        );
+  }
+
+  private static Injector resolveParentInjector(Object parent) {
+    if (parent == null) {
+      return null;
+    } else if (parent instanceof Injector) {
+      return (Injector) parent;
+    } else if (parent instanceof GuiceInjectionManager) {
+      // TODO ensure that parent is initialized
+      return ((GuiceInjectionManager) parent).injector;
+    } else {
+      throw new IllegalArgumentException(/* TODO */);
+    }
+  }
 
   @Override
   public void completeRegistration() {
@@ -57,7 +76,11 @@ public class GuiceInjectionManager implements InjectionManager {
         throw new IllegalStateException(/* TODO */);
       }
 
-      injector = Guice.createInjector(stage, builder.build());
+      if (parent == null) {
+        injector = Guice.createInjector(stage, modules.build());
+      } else {
+        injector = parent.createChildInjector(modules.build());
+      }
     }
   }
 
@@ -76,7 +99,7 @@ public class GuiceInjectionManager implements InjectionManager {
       InstanceBinding<?> instanceBinding = (InstanceBinding<?>) binding;
       Object instance = instanceBinding.getService();
 
-      builder.add(
+      modules.add(
         binder -> {
           for (Key<Object> bindingKey : bindingKeys) {
             binder.bind(bindingKey).toInstance(instance);
@@ -88,7 +111,7 @@ public class GuiceInjectionManager implements InjectionManager {
       ClassBinding<?> classBinding = (ClassBinding<?>) binding;
       Class<?> implementation = classBinding.getService();
 
-      builder.add(
+      modules.add(
         binder -> {
           scope(binder.bind(implementation), bindingScope);
 
@@ -107,7 +130,7 @@ public class GuiceInjectionManager implements InjectionManager {
       @SuppressWarnings("unchecked")
       Supplier<Object> supplier = (Supplier<Object>) supplierBinding.getSupplier();
 
-      builder.add(
+      modules.add(
         binder -> {
           /*
           create a hidden internal binding because HK2 lets you bind the same singleton
@@ -134,7 +157,7 @@ public class GuiceInjectionManager implements InjectionManager {
     } else if (binding instanceof SupplierClassBinding) {
       SupplierClassBinding<?> supplierClassBinding = (SupplierClassBinding<?>) binding;
 
-      builder.add(
+      modules.add(
         binder -> {
           @SuppressWarnings("unchecked")
           Class<Supplier<Object>> supplierClass = (Class<Supplier<Object>>) supplierClassBinding.getSupplierClass();
@@ -183,7 +206,7 @@ public class GuiceInjectionManager implements InjectionManager {
   public void register(Object provider) throws IllegalArgumentException {
     if (isRegistrable(provider.getClass())) {
       com.google.inject.Module module = (com.google.inject.Module) provider;
-      builder.add(module);
+      modules.add(module);
     } else {
       throw new IllegalArgumentException();
     }
@@ -196,8 +219,8 @@ public class GuiceInjectionManager implements InjectionManager {
 
   @Override
   public <T> T createAndInitialize(Class<T> createMe) {
-    // TODO is this ok?
-    return getInstance(createMe);
+    // TODO catch exception and attempt fallback?
+    return injector.getInstance(createMe);
   }
 
   @Override
@@ -205,18 +228,19 @@ public class GuiceInjectionManager implements InjectionManager {
     Class<T> contractOrImpl,
     Annotation... qualifiers
   ) {
+    Set<Type> contractTypes = ImmutableSet.of(contractOrImpl);
+
     switch (qualifiers.length) {
       case 0:
-        TypeLiteral<T> typeLiteral = TypeLiteral.get(contractOrImpl);
-        return injector
-          .findBindingsByType(typeLiteral)
+        List<T> instances = getAllInstances(contractOrImpl);
+        return instances
           .stream()
-          .map(this::asServiceHolder)
-          .collect(Collectors.toList());
+          .map(instance -> asServiceHolder(instance, contractTypes))
+          .collect(ImmutableList.toImmutableList());
       case 1:
         Key<T> key = Key.get(contractOrImpl, qualifiers[0]);
-        ServiceHolder<T> serviceHolder = asServiceHolder(injector.getBinding(key));
-        return Collections.singletonList(serviceHolder);
+        ServiceHolder<T> serviceHolder = asServiceHolder(getInstance(key), contractTypes);
+        return ImmutableList.of(serviceHolder);
       default:
         // TODO
         throw new IllegalArgumentException();
@@ -230,7 +254,7 @@ public class GuiceInjectionManager implements InjectionManager {
         return getInstance(contractOrImpl);
       case 1:
         Key<T> key = Key.get(contractOrImpl, qualifiers[0]);
-        return injector.getInstance(key);
+        return getInstance(key);
       default:
         // TODO
         throw new IllegalArgumentException();
@@ -244,14 +268,37 @@ public class GuiceInjectionManager implements InjectionManager {
 
   @Override
   public <T> T getInstance(Class<T> contractOrImpl) {
-    return injector.getInstance(contractOrImpl);
+    return getInstance(Key.get(contractOrImpl));
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T> T getInstance(Type contractOrImpl) {
-    // TODO support just-in-time bindings?
-    return (T) injector.getExistingBinding(Key.get(contractOrImpl));
+    return getInstance((Key<T>) Key.get(contractOrImpl));
+  }
+
+  private <T> T getInstance(Key<T> key) {
+    /*
+     * TODO I don't think we want to support just-in-time bindings
+     * seems like that's what createAndInitialize is for
+     * */
+
+    /*Injector i = injector;
+    while (i != null) {
+      if (i.getBindings().containsKey(key)) {
+        return i;
+      }
+
+      i = i.getParent();
+    }
+    return null;*/
+
+    com.google.inject.Binding<T> binding = injector.getExistingBinding(key);
+    if (binding == null) {
+      return null;
+    } else {
+      return binding.getProvider().get();
+    }
   }
 
   @Override
@@ -274,7 +321,7 @@ public class GuiceInjectionManager implements InjectionManager {
       .findBindingsByType(typeLiteral)
       .stream()
       .map(binding -> binding.getProvider().get())
-      .collect(Collectors.toList());
+      .collect(ImmutableList.toImmutableList());
   }
 
   @Override
@@ -293,12 +340,7 @@ public class GuiceInjectionManager implements InjectionManager {
     throw new UnsupportedOperationException();
   }
 
-  private <T> ServiceHolder<T> asServiceHolder(com.google.inject.Binding<T> binding) {
-    T instance = binding.getProvider().get();
-    // TODO what are contract types?
-    Set<Type> contractTypes = Collections.singleton(
-      binding.getKey().getTypeLiteral().getType()
-    );
+  private <T> ServiceHolder<T> asServiceHolder(T instance, Set<Type> contractTypes) {
     return new ServiceHolderImpl<>(instance, contractTypes);
   }
 
