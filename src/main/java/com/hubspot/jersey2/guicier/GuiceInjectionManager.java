@@ -18,6 +18,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -108,8 +109,21 @@ public class GuiceInjectionManager implements InjectionManager {
 
       builder.add(
         binder -> {
+          /*
+          create a hidden internal binding because HK2 lets you bind the same singleton
+          to multiple interfaces, sharing a single instance under the hood. Guice
+          doesn't seem to support this natively, so create a single hidden binding
+          and bind all the interfaces to this hidden binding so they share an
+          instance
+           */
+          Key<Object> hidden = Key.get(
+            Object.class,
+            Names.named(UUID.randomUUID().toString())
+          );
+          scope(binder.bind(hidden).toProvider(supplier::get), bindingScope);
+
           for (Key<Object> bindingKey : bindingKeys) {
-            scope(binder.bind(bindingKey).toProvider(supplier::get), bindingScope);
+            binder.bind(bindingKey).to(hidden);
 
             // go through a provider to make sure we respect the binding scope
             Provider<Object> provider = binder.getProvider(bindingKey);
@@ -128,10 +142,25 @@ public class GuiceInjectionManager implements InjectionManager {
           Provider<Supplier<Object>> supplierProvider = binder.getProvider(supplierClass);
           Provider<Object> provider = () -> supplierProvider.get().get();
 
-          for (Key<Object> bindingKey : bindingKeys) {
-            binder.bind(supplierKey(bindingKey)).toProvider(supplierProvider);
+          /*
+          create a hidden internal binding because HK2 lets you bind the same singleton
+          to multiple interfaces, sharing a single instance under the hood. Guice
+          doesn't seem to support this natively, so create a single hidden binding
+          and bind all the interfaces to this hidden binding so they share an
+          instance
+           */
+          Key<Object> hidden = Key.get(
+            Object.class,
+            Names.named(UUID.randomUUID().toString())
+          );
+          scope(binder.bind(hidden).toProvider(provider), bindingScope);
 
-            scope(binder.bind(bindingKey).toProvider(provider), bindingScope);
+          for (Key<Object> bindingKey : bindingKeys) {
+            binder.bind(bindingKey).to(hidden);
+
+            // go through a provider to make sure we respect the binding scope
+            Provider<Object> provider2 = binder.getProvider(bindingKey);
+            binder.bind(supplierKey(bindingKey)).toInstance(provider2::get);
           }
         }
       );

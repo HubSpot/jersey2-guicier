@@ -17,6 +17,7 @@
 package com.hubspot.jersey2.guicier;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
@@ -80,15 +81,14 @@ public class SupplierClassBindingTest {
     assertNotSame(greeting1, greeting2);
     assertNotSame(greeting2, greeting3);
 
-    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class)
-      .greetingSupplier;
-    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class)
-      .greetingSupplier;
-    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class)
-      .greetingSupplier;
+    greeting1 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
+    greeting2 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
+    greeting3 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
 
-    assertNotSame(supplier1, supplier2);
-    assertNotSame(supplier2, supplier3);
+    assertNotSame(greeting1, greeting2);
+    assertNotSame(greeting2, greeting3);
+    assertNotEquals(greeting1.getFactoryInstance(), greeting2.getFactoryInstance());
+    assertNotEquals(greeting2.getFactoryInstance(), greeting3.getFactoryInstance());
   }
 
   @Test
@@ -136,15 +136,14 @@ public class SupplierClassBindingTest {
     assertSame(greeting1, greeting2);
     assertSame(greeting2, greeting3);
 
-    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class)
-      .greetingSupplier;
-    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class)
-      .greetingSupplier;
-    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class)
-      .greetingSupplier;
+    greeting1 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
+    greeting2 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
+    greeting3 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
 
-    assertNotSame(supplier1, supplier2);
-    assertNotSame(supplier2, supplier3);
+    assertSame(greeting1, greeting2);
+    assertSame(greeting2, greeting3);
+    assertEquals(greeting1.getFactoryInstance(), greeting2.getFactoryInstance());
+    assertEquals(greeting2.getFactoryInstance(), greeting3.getFactoryInstance());
   }
 
   @Test

@@ -16,13 +16,17 @@
 
 package com.hubspot.jersey2.guicier;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
  * @author Petr Bouda
  */
 public class SupplierGreeting implements Supplier<Greeting> {
+  private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger();
+
   private final String greetingType;
+  private final int instanceNumber;
 
   /**
    * Default constructor.
@@ -38,14 +42,15 @@ public class SupplierGreeting implements Supplier<Greeting> {
    */
   public SupplierGreeting(String greetingType) {
     this.greetingType = greetingType;
+    this.instanceNumber = INSTANCE_COUNTER.incrementAndGet();
   }
 
   @Override
   public Greeting get() {
     if (CzechGreeting.GREETING.equals(greetingType)) {
-      return new CzechGreeting();
+      return new CzechGreeting(instanceNumber);
     } else {
-      return new EnglishGreeting();
+      return new EnglishGreeting(instanceNumber);
     }
   }
 }

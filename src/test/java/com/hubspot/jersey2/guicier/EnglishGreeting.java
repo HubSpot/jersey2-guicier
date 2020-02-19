@@ -16,11 +16,24 @@
 
 package com.hubspot.jersey2.guicier;
 
+import javax.inject.Inject;
+
 /**
  * @author Petr Bouda
  */
 public class EnglishGreeting implements Greeting, Printable {
   static final String GREETING = "Hello";
+
+  private final int factoryInstance;
+
+  @Inject
+  public EnglishGreeting() {
+    this(-1);
+  }
+
+  public EnglishGreeting(int factoryInstance) {
+    this.factoryInstance = factoryInstance;
+  }
 
   @Override
   public String getGreeting() {
@@ -30,5 +43,10 @@ public class EnglishGreeting implements Greeting, Printable {
   @Override
   public void print() {
     System.out.println(GREETING);
+  }
+
+  @Override
+  public int getFactoryInstance() {
+    return factoryInstance;
   }
 }

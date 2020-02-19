@@ -16,6 +16,7 @@
 
 package com.hubspot.jersey2.guicier;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
@@ -153,7 +154,10 @@ public class SupplierContractsTest {
     assertNotNull(conversation.printableSupplier);
 
     assertNotSame(conversation.greeting, conversation.printable);
-    assertSame(conversation.greetingSupplier, conversation.printableSupplier);
+    Greeting greeting = conversation.greetingSupplier.get();
+    Printable printable = conversation.printableSupplier.get();
+    assertNotSame(greeting, printable);
+    assertEquals(greeting.getFactoryInstance(), printable.getFactoryInstance());
   }
 
   @Test
@@ -179,7 +183,10 @@ public class SupplierContractsTest {
     assertNotNull(conversation.printableSupplier);
 
     assertSame(conversation.greeting, conversation.printable);
-    assertNotSame(conversation.greetingSupplier, conversation.printableSupplier);
+    Greeting greeting = conversation.greetingSupplier.get();
+    Printable printable = conversation.printableSupplier.get();
+    assertSame(greeting, printable);
+    assertEquals(greeting.getFactoryInstance(), printable.getFactoryInstance());
   }
 
   @Test
@@ -201,7 +208,10 @@ public class SupplierContractsTest {
     assertNotNull(conversation.printableSupplier);
 
     assertNotSame(conversation.greeting, conversation.printable);
-    assertSame(conversation.greetingSupplier, conversation.printableSupplier);
+    Greeting greeting = conversation.greetingSupplier.get();
+    Printable printable = conversation.printableSupplier.get();
+    assertNotSame(greeting, printable);
+    assertEquals(greeting.getFactoryInstance(), printable.getFactoryInstance());
   }
 
   @Test
@@ -227,7 +237,10 @@ public class SupplierContractsTest {
     assertNotNull(conversation.printableSupplier);
 
     assertSame(conversation.greeting, conversation.printable);
-    assertSame(conversation.greetingSupplier, conversation.printableSupplier);
+    Greeting greeting = conversation.greetingSupplier.get();
+    Printable printable = conversation.printableSupplier.get();
+    assertSame(greeting, printable);
+    assertEquals(greeting.getFactoryInstance(), printable.getFactoryInstance());
   }
 
   @Test(expected = CreationException.class)
