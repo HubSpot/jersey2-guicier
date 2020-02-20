@@ -281,18 +281,7 @@ public class GuiceInjectionManager implements InjectionManager {
     /*
      * TODO I don't think we want to support just-in-time bindings
      * seems like that's what createAndInitialize is for
-     * */
-
-    /*Injector i = injector;
-    while (i != null) {
-      if (i.getBindings().containsKey(key)) {
-        return i;
-      }
-
-      i = i.getParent();
-    }
-    return null;*/
-
+     */
     com.google.inject.Binding<T> binding = injector.getExistingBinding(key);
     if (binding == null) {
       return null;
