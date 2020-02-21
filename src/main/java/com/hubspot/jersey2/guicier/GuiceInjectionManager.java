@@ -12,8 +12,10 @@ import com.google.inject.Stage;
 import com.google.inject.TypeLiteral;
 import com.google.inject.binder.ScopedBindingBuilder;
 import com.google.inject.name.Names;
+import com.google.inject.servlet.ServletScopes;
 import com.google.inject.util.Types;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
@@ -25,12 +27,14 @@ import org.glassfish.jersey.internal.inject.Binding;
 import org.glassfish.jersey.internal.inject.ClassBinding;
 import org.glassfish.jersey.internal.inject.ForeignDescriptor;
 import org.glassfish.jersey.internal.inject.InjectionManager;
+import org.glassfish.jersey.internal.inject.InjectionResolverBinding;
 import org.glassfish.jersey.internal.inject.InstanceBinding;
 import org.glassfish.jersey.internal.inject.PerLookup;
 import org.glassfish.jersey.internal.inject.ServiceHolder;
 import org.glassfish.jersey.internal.inject.ServiceHolderImpl;
 import org.glassfish.jersey.internal.inject.SupplierClassBinding;
 import org.glassfish.jersey.internal.inject.SupplierInstanceBinding;
+import org.glassfish.jersey.process.internal.RequestScoped;
 
 public class GuiceInjectionManager implements InjectionManager {
   private final Injector parent;
@@ -47,22 +51,32 @@ public class GuiceInjectionManager implements InjectionManager {
         .add(
           binder -> {
             binder.bindScope(PerLookup.class, Scopes.NO_SCOPE);
+            binder.bindScope(RequestScoped.class, ServletScopes.REQUEST);
             // TODO per-thread
           }
         );
   }
 
   private static Injector resolveParentInjector(Object parent) {
+    Injector injector;
+
     if (parent == null) {
       return null;
     } else if (parent instanceof Injector) {
-      return (Injector) parent;
+      injector = (Injector) parent;
     } else if (parent instanceof GuiceInjectionManager) {
-      // TODO ensure that parent is initialized
-      return ((GuiceInjectionManager) parent).injector;
+      // TODO ensure that injector is initialized
+      injector = ((GuiceInjectionManager) parent).injector;
     } else {
       throw new IllegalArgumentException(/* TODO */);
     }
+
+    // go to parent without InjectionManager binding to avoid duplicates
+    while (injector.getExistingBinding(Key.get(InjectionManager.class)) != null) {
+      injector = injector.getParent();
+    }
+
+    return injector;
   }
 
   @Override
@@ -76,11 +90,18 @@ public class GuiceInjectionManager implements InjectionManager {
         throw new IllegalStateException(/* TODO */);
       }
 
+      final Injector withoutInjectionManagerBound;
       if (parent == null) {
-        injector = Guice.createInjector(stage, modules.build());
+        withoutInjectionManagerBound = Guice.createInjector(stage, modules.build());
       } else {
-        injector = parent.createChildInjector(modules.build());
+        withoutInjectionManagerBound = parent.createChildInjector(modules.build());
       }
+
+      // store this binding in a child injector so we don't get duplicates if someone uses us as a parent
+      injector =
+        withoutInjectionManagerBound.createChildInjector(
+          binder -> binder.bind(InjectionManager.class).toInstance(this)
+        );
     }
   }
 
@@ -187,6 +208,9 @@ public class GuiceInjectionManager implements InjectionManager {
           }
         }
       );
+    } else if (binding instanceof InjectionResolverBinding) {
+      InjectionResolverBinding<?> injectionResolverBinding = (InjectionResolverBinding<?>) binding;
+      // TODO
     } else {
       throw new IllegalArgumentException(/* TODO */);
     }
@@ -219,8 +243,18 @@ public class GuiceInjectionManager implements InjectionManager {
 
   @Override
   public <T> T createAndInitialize(Class<T> createMe) {
-    // TODO catch exception and attempt fallback?
-    return injector.getInstance(createMe);
+    if (injector == null) {
+      // TODO hack in case this method is invoked before injector is created
+      try {
+        Constructor<T> constructor = createMe.getConstructor();
+        return constructor.newInstance();
+      } catch (ReflectiveOperationException e) {
+        throw new RuntimeException("Error instantiating class: " + createMe, e);
+      }
+    } else {
+      // TODO catch exception and attempt fallback?
+      return injector.getInstance(createMe);
+    }
   }
 
   @Override
@@ -278,6 +312,11 @@ public class GuiceInjectionManager implements InjectionManager {
   }
 
   private <T> T getInstance(Key<T> key) {
+    // TODO not initialized yet
+    if (injector == null) {
+      return null;
+    }
+
     /*
      * TODO I don't think we want to support just-in-time bindings
      * seems like that's what createAndInitialize is for
