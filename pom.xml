@@ -17,7 +17,7 @@
 
     <dep.guava.version>26.0-jre</dep.guava.version>
     <dep.guice.version>4.2.2</dep.guice.version>
-    <dep.jersey2.version>2.30</dep.jersey2.version>
+    <dep.jersey2.version>2.34</dep.jersey2.version>
   </properties>
 
   <dependencyManagement>
