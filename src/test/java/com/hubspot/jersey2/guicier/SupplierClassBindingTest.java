@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2018 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2022 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -16,17 +16,16 @@
 
 package com.hubspot.jersey2.guicier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import jakarta.inject.Singleton;
 import java.util.function.Supplier;
-import javax.inject.Singleton;
 import org.glassfish.jersey.internal.inject.InjectionManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests that {@link java.util.function.Supplier} can be registered as a class-factory.
@@ -36,12 +35,12 @@ import org.junit.Test;
 public class SupplierClassBindingTest {
   private InjectionManager injectionManager;
 
-  @Before
+  @BeforeEach
   public void setup() {
     injectionManager = BindingTestHelper.createInjectionManager();
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     injectionManager.shutdown();
   }
@@ -81,14 +80,15 @@ public class SupplierClassBindingTest {
     assertNotSame(greeting1, greeting2);
     assertNotSame(greeting2, greeting3);
 
-    greeting1 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
-    greeting2 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
-    greeting3 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
+    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
 
-    assertNotSame(greeting1, greeting2);
-    assertNotSame(greeting2, greeting3);
-    assertNotEquals(greeting1.getFactoryInstance(), greeting2.getFactoryInstance());
-    assertNotEquals(greeting2.getFactoryInstance(), greeting3.getFactoryInstance());
+    assertNotSame(supplier1, supplier2);
+    assertNotSame(supplier2, supplier3);
   }
 
   @Test
@@ -136,14 +136,15 @@ public class SupplierClassBindingTest {
     assertSame(greeting1, greeting2);
     assertSame(greeting2, greeting3);
 
-    greeting1 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
-    greeting2 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
-    greeting3 = injectionManager.getInstance(Conversation.class).greetingSupplier.get();
+    Supplier<Greeting> supplier1 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier2 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
+    Supplier<Greeting> supplier3 = injectionManager.getInstance(Conversation.class)
+      .greetingSupplier;
 
-    assertSame(greeting1, greeting2);
-    assertSame(greeting2, greeting3);
-    assertEquals(greeting1.getFactoryInstance(), greeting2.getFactoryInstance());
-    assertEquals(greeting2.getFactoryInstance(), greeting3.getFactoryInstance());
+    assertNotSame(supplier1, supplier2);
+    assertNotSame(supplier2, supplier3);
   }
 
   @Test

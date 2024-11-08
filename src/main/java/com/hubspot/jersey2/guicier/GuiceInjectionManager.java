@@ -111,6 +111,12 @@ public class GuiceInjectionManager implements InjectionManager {
   }
 
   @Override
+  public boolean isShutdown() {
+    // TODO
+    return false;
+  }
+
+  @Override
   public void register(Binding binding) {
     @SuppressWarnings("unchecked")
     Class<? extends Annotation> bindingScope = (Class<? extends Annotation>) binding.getScope();
@@ -239,6 +245,11 @@ public class GuiceInjectionManager implements InjectionManager {
   @Override
   public boolean isRegistrable(Class<?> clazz) {
     return com.google.inject.Module.class.isAssignableFrom(clazz);
+  }
+
+  @Override
+  public <T> T create(Class<T> createMe) {
+    return null;
   }
 
   @Override

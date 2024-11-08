@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2018 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2022 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -16,17 +16,17 @@
 
 package com.hubspot.jersey2.guicier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import jakarta.inject.Singleton;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-import javax.inject.Singleton;
 import org.glassfish.jersey.internal.inject.InjectionManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests that {@link java.util.function.Supplier} can be registered as a instance-factory.
@@ -46,12 +46,12 @@ public class SupplierInstanceBindingTest {
 
   private InjectionManager injectionManager;
 
-  @Before
+  @BeforeEach
   public void setup() {
     injectionManager = BindingTestHelper.createInjectionManager();
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     injectionManager.shutdown();
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2018 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2022 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -16,9 +16,10 @@
 
 package com.hubspot.jersey2.guicier;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -27,7 +28,7 @@ import org.glassfish.jersey.internal.inject.Bindings;
 import org.glassfish.jersey.internal.inject.ClassBinding;
 import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.internal.inject.Injections;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Petr Bouda
@@ -61,9 +62,14 @@ public class InjectionManagerTest {
     assertNotNull(injectionManager.getInstance(EnglishGreeting.class));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testUnknownParent() {
-    Injections.createInjectionManager(new Object());
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> {
+        Injections.createInjectionManager(new Object());
+      }
+    );
   }
 
   @Test
@@ -88,9 +94,14 @@ public class InjectionManagerTest {
     assertNotNull(injectionManager.getInstance(EnglishGreeting.class));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testRegisterUnknownProvider() {
-    InjectionManager injectionManager = Injections.createInjectionManager();
-    injectionManager.register(new Object());
+    assertThrows(
+      IllegalArgumentException.class,
+      () -> {
+        InjectionManager injectionManager = Injections.createInjectionManager();
+        injectionManager.register(new Object());
+      }
+    );
   }
 }

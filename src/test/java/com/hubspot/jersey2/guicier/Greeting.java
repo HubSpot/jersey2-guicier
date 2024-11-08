@@ -19,6 +19,7 @@ package com.hubspot.jersey2.guicier;
 /**
  * @author Petr Bouda
  */
+@FunctionalInterface
 public interface Greeting {
   /**
    * Returns greeting in a specific language.
@@ -26,5 +27,4 @@ public interface Greeting {
    * @return type of the greeting.
    */
   String getGreeting();
-  int getFactoryInstance();
 }

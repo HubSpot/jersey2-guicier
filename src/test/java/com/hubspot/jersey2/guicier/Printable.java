@@ -19,7 +19,7 @@ package com.hubspot.jersey2.guicier;
 /**
  * @author Petr Bouda
  */
+@FunctionalInterface
 public interface Printable {
   void print();
-  int getFactoryInstance();
 }
